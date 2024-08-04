@@ -75,6 +75,26 @@ const checkUserPayload = async (
 	}
 }
 
+const checkoutUserRolePayload = async (
+	c: Context<HonoCustomType>
+): Promise<void> => {
+	try {
+		const token = c.req.raw.headers.get("x-user-access-token");
+		if (!token) return;
+		const payload = await Jwt.verify(token, c.env.JWT_SECRET, "HS256");
+		// check expired
+		if (!payload.exp) return;
+		// exp is in seconds
+		if (payload.exp < Math.floor(Date.now() / 1000)) {
+			return;
+		}
+		if (typeof payload?.user_role !== "string") return;
+		c.set("userRolePayload", payload.user_role);
+	} catch (e) {
+		console.error(e);
+	}
+}
+
 // api auth
 app.use('/api/*', async (c, next) => {
 	// check header x-custom-auth
@@ -89,6 +109,11 @@ app.use('/api/*', async (c, next) => {
 		await checkUserPayload(c);
 		await next();
 		return;
+	}
+	if (c.req.path.startsWith("/api/settings")
+		|| c.req.path.startsWith("/api/send_mail")
+	) {
+		await checkoutUserRolePayload(c);
 	}
 	return jwt({ secret: c.env.JWT_SECRET, alg: "HS256" })(c, next);
 });
@@ -134,6 +159,26 @@ app.use('/admin/*', async (c, next) => {
 		if (adminAuth && adminPasswords.includes(adminAuth)) {
 			await next();
 			return;
+		}
+	}
+	// check if user is admin
+	const access_token = c.req.raw.headers.get("x-user-access-token");
+	if (c.env.ADMIN_USER_ROLE && access_token) {
+		try {
+			const payload = await Jwt.verify(access_token, c.env.JWT_SECRET, "HS256");
+			// check expired
+			if (!payload.exp) return c.text("Invalid Token", 401);
+			// exp is in seconds
+			if (payload.exp < Math.floor(Date.now() / 1000)) {
+				return c.text("Token Expired", 401)
+			}
+			if (payload.user_role !== c.env.ADMIN_USER_ROLE) {
+				return c.text("Need Admin Role", 401)
+			}
+			await next();
+			return;
+		} catch (e) {
+			console.error(e);
 		}
 	}
 	return c.text("Need Admin Password", 401)

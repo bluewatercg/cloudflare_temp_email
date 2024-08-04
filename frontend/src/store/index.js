@@ -1,13 +1,15 @@
-import { ref } from "vue";
-import { createGlobalState, useStorage, useDark, useToggle } from '@vueuse/core'
+import { computed, ref } from "vue";
+import { createGlobalState, useStorage, useDark, useToggle, useLocalStorage } from '@vueuse/core'
 
 export const useGlobalState = createGlobalState(
     () => {
         const isDark = useDark()
         const toggleDark = useToggle(isDark)
         const loading = ref(false);
+        const announcement = useLocalStorage('announcement', '');
         const openSettings = ref({
             title: '',
+            announcement: '',
             prefix: '',
             needAuth: false,
             adminContact: '',
@@ -23,6 +25,7 @@ export const useGlobalState = createGlobalState(
             cfTurnstileSiteKey: '',
             enableWebhook: false,
             isS3Enabled: false,
+            showGithub: true,
         })
         const settings = ref({
             fetched: false,
@@ -72,9 +75,14 @@ export const useGlobalState = createGlobalState(
             user_email: '',
             /** @type {number} */
             user_id: 0,
+            /** @type {boolean} */
+            is_admin: false,
+            /** @type {string | null} */
+            access_token: null,
             /** @type {null | {domains: string[] | undefined | null, role: string, prefix: string | undefined | null}} */
             user_role: null,
         });
+        const showAdminPage = computed(() => !!adminAuth.value || userSettings.value.is_admin);
         const telegramApp = ref(window.Telegram?.WebApp || {});
         const isTelegram = ref(!!window.Telegram?.WebApp?.initData);
         return {
@@ -83,6 +91,7 @@ export const useGlobalState = createGlobalState(
             loading,
             settings,
             sendMailModel,
+            announcement,
             openSettings,
             showAuth,
             showAddressCredential,
@@ -105,6 +114,7 @@ export const useGlobalState = createGlobalState(
             useSideMargin,
             telegramApp,
             isTelegram,
+            showAdminPage,
         }
     },
 )

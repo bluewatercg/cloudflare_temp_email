@@ -1,6 +1,20 @@
 <!-- markdownlint-disable-file MD004 MD024 MD034 MD036 -->
 # CHANGE LOG
 
+## main(v0.7.0)
+
+- Docs: Update new-address-api.md (#360)
+- feat: worker 增加 `ADMIN_USER_ROLE` 配置, 用于配置管理员用户角色，此角色的用户可访问 admin 管理页面 (#363)
+- feat: worker 增加 `DISABLE_SHOW_GITHUB` 配置, 用于配置是否显示 github 链接
+- feat: worker 增加 `NO_LIMIT_SEND_ROLE` 配置, 用于配置可以无限发送邮件的角色
+
+## v0.6.1
+
+- pages github actions && 修复清理邮件天数为 0 不生效 by @tqjason (#355)
+- fix: imap proxy server 不支持 密码 by @dreamhunter2333 (#356)
+- worker 新增 `ANNOUNCEMENT` 配置, 用于配置公告信息 by @dreamhunter2333 (#357)
+- fix: telegram bot 新建地址默认选择第一个域名 by @dreamhunter2333 (#358)
+
 ## v0.6.0
 
 ### Breaking Changes
